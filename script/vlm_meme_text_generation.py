@@ -10,7 +10,7 @@ from llava.model import *
 from llava.model.utils import KeywordsStoppingCriteria
 import json
 from PIL import Image
-from prompt_demo import  generation_question
+from prompt_demonstration import  generation_question
 import os
 import requests
 from PIL import Image
@@ -81,7 +81,8 @@ def generate_caption(input_ids, temperature , image_tensor, stopping_criteria, s
         outputs = outputs.strip()
         return output_retrieve(outputs), outputs
 
-def eval_model(model_name, data, supporter, context, output_path = "", conv_mode = None):
+# Run llava model
+def run_model(model_name, data, supporter, context, output_path = "", conv_mode = None):
     mm_use_im_start_end = getattr(model.config, "mm_use_im_start_end", False)
     tokenizer.add_tokens([DEFAULT_IMAGE_PATCH_TOKEN], special_tokens=True)
     if mm_use_im_start_end:
@@ -165,12 +166,11 @@ if __name__ == "__main__":
     # focus_dic = {"Supporter": ["Causes", "Consequences", "Solutions"], "Denier": ["Evidence of Absence", "Benefits"]}
     # For Gender Equality
     focus_dic = {"Supporter": ["Causes", "Consequences", "Solutions"], "Denier": ["Evidence of Absence", "Rationale"]}
-
     model_name = "liuhaotian/LLaVA-Lightning-MPT-7B-preview"
-    # Load model directly
+
+    # Load llava model
     disable_torch_init()
     tokenizer = AutoTokenizer.from_pretrained(model_name)
-
     if "mpt" in model_name.lower():
         model = LlavaMPTForCausalLM.from_pretrained(model_name, low_cpu_mem_usage=True, torch_dtype=torch.float16, use_cache=True).cuda()
     else:
@@ -186,7 +186,7 @@ if __name__ == "__main__":
                         # For Gender Equality
                         image_text_path =  root + "dataset/gender_inequality_memes/imgflip_"+ model_name +"/gender_inequality_" + supporter + "_" + context + "_"  + cot + "_caption.json"
                         if(context == "Rationale"):
-                            eval_model(model_name, data["Benefits"], supporter, context, image_text_path)
+                            run_model(model_name, data["Benefits"], supporter, context, image_text_path)
                         else:
-                            eval_model(model_name, data[context], supporter, context, image_text_path)
+                            run_model(model_name, data[context], supporter, context, image_text_path)
 

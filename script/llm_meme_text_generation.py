@@ -1,60 +1,13 @@
-# !pip install git+https://github.com/huggingface/transformers
-# !pip install ipywidgets
-# !pip install openai
-
 import openai
 import json
 import time
-from PIL import Image, ImageDraw, ImageFont
-import random
-import pandas as pd
 import re
 import os
-import nltk
-from nltk.stem import PorterStemmer
-from google_images_search import GoogleImagesSearch
-import html
-import urllib.request
-import io
-import textwrap
-import csv
 import transformers
 import torch
-import shutil
-from langdetect import detect
-from prompt_demo import image_selection_pools, context_string, generation_question
-from PIL import Image
-import requests
-from transformers import Blip2Processor
-from transformers import Blip2ForConditionalGeneration
-from io import BytesIO
+from prompt_demonstration import image_selection_pools, generation_question
 
-
-# tokenizer = transformers.LlamaTokenizer.from_pretrained("meta-llama/Llama-2-13b-hf", use_auth_token = "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")
-# model = transformers.LlamaForCausalLM.from_pretrained("meta-llama/Llama-2-13b-hf", use_auth_token = "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", device_map="auto", torch_dtype=torch.float16)
-
-def prompt_generation_llama(name, caption, supporter, context, demo_number):
-
-    demo = context_string[supporter][context]
-    generation_question_demo = generation_question.replace("<Stance>", supporter).replace("<Context>", context)
-    i = 0
-    for image in image_selection_pools[supporter][context]:
-        i += 1
-        if(i > demo_number):
-            break
-        Name = image["Name"]
-        Caption = image["Caption"]
-        Text = image["Text"]
-    
-        demo += generation_question_demo  \
-                +  'Input: Image "'+ Name+'" describing "' + Caption + '" \n' \
-                + 'Output: Caption: "' + Text + '" \n'
-    demo += generation_question_demo  \
-                +  'Input: Image "'+ name+'" describing "' + caption + '" \n' \
-                + 'Output: Caption: "' 
-    return demo 
-
-
+# Organize llm prompt
 def prompt_generation_cot_llama(name, caption, supporter, context, demo_number):
     demo= ""
     generation_question_demo = generation_question.replace("<Stance>", supporter).replace("<Stance2>", supporter.replace("Supporter", "support").replace("Denier", "deny")).replace("<Context>", context)
@@ -67,7 +20,6 @@ def prompt_generation_cot_llama(name, caption, supporter, context, demo_number):
         Caption = image["Caption"]
         COT = image["COT"]
         Text = image["Text"]
-    
         demo += generation_question_demo  \
                 +  'Input: Image "'+ Name+'" describing "' + Caption + '" \n' \
                 + 'Output: Let\'s think step by step. ' + COT + ' Caption: "' + Text + '" \n'
@@ -75,35 +27,6 @@ def prompt_generation_cot_llama(name, caption, supporter, context, demo_number):
                 +  'Input: Image "'+ name+'" describing "' + caption + '" \n' \
                 + 'Output: Let\'s think step by step. '
     return demo 
-
-
-def prompt_generation_gpt(name, caption, supporter, context, demo_number):
-
-    demo = context_string[supporter][context]
-    generation_question_demo = generation_question.replace("<Stance>", supporter).replace("<Context>", context)
-    i = 0
-    for image in image_selection_pools[supporter][context]:
-        i += 1
-        if(i > demo_number):
-            break
-        Name = image["Name"]
-        Caption = image["Caption"]
-        Text = image["Text"]
-
-        demo += generation_question_demo  \
-                    +  'Input: Image "'+ Name+'" describing "' + Caption + '" \n' 
-
-        if(" - " in Text):
-            caption_top = Text.split(" - ")[0]
-            caption_bottom = Text.split(" - ")[1]
-            demo += 'Output: Caption at top: "' + caption_top + '" and Caption at bottom: "' + caption_bottom + '" \n'
-        else:
-            demo += 'Output: Caption at top: "' + Text + '" \n'
-    demo += generation_question_demo  \
-                +  'Input: Image "'+ name+'" describing "' + caption + '" \n' \
-                + 'Output: Caption at top: "' 
-    return demo 
-
 
 def prompt_generation_cot_gpt(name, caption, supporter, context, demo_number):
     demo= ""
@@ -119,7 +42,6 @@ def prompt_generation_cot_gpt(name, caption, supporter, context, demo_number):
         Text = image["Text"]
         demo += generation_question_demo  \
                 +  'Input: Image "'+ Name+'" describing "' + Caption + '" \n' 
-
         if(" - " in Text):
             caption_top = Text.split(" - ")[0]
             caption_bottom = Text.split(" - ")[1]
@@ -133,6 +55,7 @@ def prompt_generation_cot_gpt(name, caption, supporter, context, demo_number):
                 + 'Output: Let\'s think step by step. '
     return demo 
 
+# Retrieve meme text from llm generated outputs.
 def gpt_output_retrieve(text, demo_number):
     pattern = r"{0}(.*?){1}".format('Caption at top: "', '"')
     match = re.search(pattern, text, re.DOTALL)
@@ -151,7 +74,6 @@ def gpt_output_retrieve(text, demo_number):
         else:
             caption_bottom = text.split('Caption at bottom: "')[-1]
         processed_caption += " <-> " +  caption_bottom
-
     return processed_caption
 
 def llama_output_retrieve(text, demo_number):
@@ -171,7 +93,6 @@ def llama_output_retrieve(text, demo_number):
 
 openai.api_key ="API-KEY"
 def callChatAPI(content, temperature=1,msgs=None):
-    
     retry=0
     response=None
     while retry<3:
@@ -193,6 +114,9 @@ def callChatAPI(content, temperature=1,msgs=None):
             time.sleep(3)
     return response["choices"][0]["message"]["content"]
 
+
+tokenizer = transformers.LlamaTokenizer.from_pretrained("meta-llama/Llama-2-13b-hf", use_auth_token = "use_auth_token")
+model = transformers.LlamaForCausalLM.from_pretrained("meta-llama/Llama-2-13b-hf", use_auth_token = "use_auth_token", device_map="auto", torch_dtype=torch.float16)
 def call_llama(prompt, temperature=1, max_token=100, device = "cuda:0"):
     # Tokenize the prompt
     batch = tokenizer(
@@ -207,9 +131,7 @@ def call_llama(prompt, temperature=1, max_token=100, device = "cuda:0"):
     decoded_output = tokenizer.decode(generated[0])
     return decoded_output
 
-
 root = "../MemeCraft"
-image_caption_path =  root + "dataset/meme_text_description.json"
 image_url_path = root + "dataset/meme_template_sorted.json"
 def run_caption_generation(path, output_path, model_name, supporter, context, cot, demo_number):
     with open(path, "r") as f:
@@ -244,11 +166,6 @@ def run_caption_generation(path, output_path, model_name, supporter, context, co
                 prompt = prompt_generation_cot_gpt(img_name, img_caption , supporter, context, demo_number)
             else:
                 prompt = prompt_generation_cot_llama(img_name, img_caption , supporter, context, demo_number)
-        else:
-            if(model_name == "ChatGPT"):
-                prompt = prompt_generation_gpt(img_name, img_caption , supporter, context, demo_number)
-            else:
-                prompt = prompt_generation_llama(img_name, img_caption , supporter, context, demo_number)
         i = 0 
         while((cleaned_text == "Error" or cleaned_text == "Hateful")and i <= 3):
             i += 1
@@ -258,20 +175,20 @@ def run_caption_generation(path, output_path, model_name, supporter, context, co
             else:
                 text = call_llama(prompt, 1, 200)
                 cleaned_text = llama_output_retrieve(text, demo_number)
-            print(text)
-            print(cleaned_text)
+
         output[img_name] = [cleaned_text, text]
         with open(output_path, "w") as f:
             json.dump(output, f)
 
 
-
-# For Climate Action
-# focus_dic = {"Supporter": ["Causes", "Consequences", "Solutions"], "Denier": ["Evidence of Absence", "Benefits"]}
-# For Gender Equality
-focus_dic = {"Supporter": ["Causes", "Consequences", "Solutions"], "Denier": ["Evidence of Absence", "Rationale"]}
-
 if __name__ == "__main__":
+
+    # For Climate Action
+    # focus_dic = {"Supporter": ["Causes", "Consequences", "Solutions"], "Denier": ["Evidence of Absence", "Benefits"]}
+    # For Gender Equality
+    focus_dic = {"Supporter": ["Causes", "Consequences", "Solutions"], "Denier": ["Evidence of Absence", "Rationale"]}
+    image_caption_path =  root + "dataset/meme_text_description.json"
+
     for cot in ["COT"]:
         for supporter in ["Supporter", "Denier"]:
             for context in focus_dic[supporter]:

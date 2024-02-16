@@ -1,6 +1,5 @@
-
+# prompt demo for climate action
 context_string = {}
-# List down top 5 <Aspects> of Climate Change
 cause = '''Causes of Climate Change "Greenhouse Gas Emissions, Deforestation, Agriculture and Livestock, Industrial Processesa, Transportation..." \n'''
 consequences = '''Consequences of Climate Change "Rising Global Temperatures, Melting Ice and Rising Sea Levels, Extreme Weather Events, Ocean Acidification, Ecosystem Disruption and Biodiversity Loss..." \n'''
 solutions = '''Solutions of Climate Change "Transition to Renewable Energy, Energy Efficiency Improvements, Afforestation and Reforestation, Climate Policy and Regulations, Climate Adaptation and Resilience..." \n'''
@@ -96,8 +95,6 @@ image_selection_pool.append({
 image_selection_pools["Supporter"]["Solutions"] = image_selection_pool
 
 
-
-
 cause = '''Evidence of Absence of Climate Change "Short-term temperature fluctuations, Natural climate variability, No consensus among scientists, Data manipulation and errors, Limited historical data..." \n'''
 consequences = '''Benefits of Climate Change "Longer Growing Seasons, Opening of New Trade Routes, Increased Tourism in Some Areas, Expanded Habitats for Some Species, Enhanced Renewable Energy Potential..." \n'''
 context_string["Denier"] = {}
@@ -162,9 +159,8 @@ image_selection_pools["Denier"]["Benefits"] = image_selection_pool
 
 
 
-
+# prompt demo for gender equality
 context_string = {}
-# List down top 5 <Aspects> of gender inequality
 cause = '''Causes of Gender Inequality "Social Norms and Stereotypes, Economic Disparities, Education Disparities, Violence and Discrimination and Political Underrepresentation..." \n'''
 consequences = '''Consequences of Gender Inequality "Economic Disparities, Limited Access to Education, Health Disparities, Violence Against Women and Underrepresentation in Decision-Making..." \n'''
 solutions = '''Solutions of Gender Inequality "Education and Awareness, Economic Empowerment, Legal and Policy Reforms, Healthcare and Reproductive Rights and Cultural and Social Change..." \n'''
@@ -322,38 +318,3 @@ image_selection_pool.append({
     })
 image_selection_pools["Denier"]["Rationale"] = image_selection_pool
 
-
-# def prompt_generation_cot_gpt(name, caption, supporter, context, demo_number):
-#     demo= ""
-#     generation_question_demo = generation_question.replace("<Stance>", supporter).replace("<Stance2>", supporter.replace("Supporter", "support").replace("Denier", "deny")).replace("<Context>", context)
-#     i = 0
-#     for image in image_selection_pools[supporter][context]:
-#         i += 1
-#         if(i > demo_number):
-#             break
-#         Name = image["Name"]
-#         Caption = image["Caption"]
-#         COT = image["COT"]
-#         Text = image["Text"]
-#         demo += generation_question_demo  \
-#                 +  'Input: Image "'+ Name+'" describing "' + Caption + '" \n' 
-
-#         if(" - " in Text):
-#             caption_top = Text.split(" - ")[0]
-#             caption_bottom = Text.split(" - ")[1]
-#             demo += 'Output: Let\'s think step by step. ' + COT + ' Caption at top: "' + caption_top + '" and Caption at bottom: "' + caption_bottom + '" \n'
-#         else:
-#             demo += 'Output: Let\'s think step by step. ' + COT + ' Caption at top: "' + Text + '" \n'
-        
-            
-#     demo += generation_question_demo  \
-#                 +  'Input: Image "'+ name+'" describing "' + caption + '" \n' \
-#                 + 'Output: Let\'s think step by step. '
-#     return demo 
-
-# id = 3
-# Supporter = "Denier"
-# context = "Evidence of Absence"
-# print(prompt_generation_cot_gpt(image_selection_pools[Supporter][context][id]["Name"],\
-#                                  image_selection_pools[Supporter][context][id]["Caption"],\
-#                                 Supporter, context, id))

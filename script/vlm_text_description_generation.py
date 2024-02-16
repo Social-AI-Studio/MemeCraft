@@ -1,38 +1,28 @@
-import argparse
-from transformers import AutoTokenizer, AutoModelForCausalLM
+from transformers import AutoTokenizer
 import torch
 import os
 from llava.conversation import conv_templates, SeparatorStyle
 from llava.utils import disable_torch_init
-from transformers import CLIPVisionModel, CLIPImageProcessor, StoppingCriteria
+from transformers import CLIPVisionModel, CLIPImageProcessor
 from llava.model import *
 from llava.model.utils import KeywordsStoppingCriteria
 import json
 from PIL import Image
-
-import os
 import requests
-from PIL import Image
 from io import BytesIO
 
-
-DEFAULT_IMAGE_TOKEN = "<image>"
-DEFAULT_IMAGE_PATCH_TOKEN = "<im_patch>"
-DEFAULT_IM_START_TOKEN = "<im_start>"
-DEFAULT_IM_END_TOKEN = "<im_end>"
-
-
-def load_image(image_file):
-    if image_file.startswith('http') or image_file.startswith('https'):
-        response = requests.get(image_file)
+# Retrieve image from url
+def load_image(image_url):
+    if image_url.startswith('http') or image_url.startswith('https'):
+        response = requests.get(image_url)
         image = Image.open(BytesIO(response.content)).convert('RGB')
     else:
-        image = Image.open(image_file).convert('RGB')
+        image = Image.open(image_url).convert('RGB')
     return image
 
 
-def eval_model(model_name, data, query, output_path = "", conv_mode = None):
-    # Model
+# Load and run llava model
+def run_model(model_name, data, query, output_path = "", conv_mode = None):
     disable_torch_init()
     
     tokenizer = AutoTokenizer.from_pretrained(model_name)
@@ -66,6 +56,7 @@ def eval_model(model_name, data, query, output_path = "", conv_mode = None):
             results = json.load(f)
     else:   
         results ={}
+
     for name in data:
         if(name in results):
             continue
@@ -87,11 +78,6 @@ def eval_model(model_name, data, query, output_path = "", conv_mode = None):
             conv_mode = "mpt_multimodal"
         else:
             conv_mode = "multimodal"
-
-    # if args.conv_mode is not None and conv_mode != args.conv_mode:
-    #     print('[WARNING] the auto inferred conversation mode is {}, while `--conv-mode` is {}, using {}'.format(conv_mode, args.conv_mode, args.conv_mode))
-    # else:
-    #     args.conv_mode = conv_mode
 
         conv = conv_templates[conv_mode].copy()
         conv.append_message(conv.roles[0], qs)
@@ -134,15 +120,17 @@ def eval_model(model_name, data, query, output_path = "", conv_mode = None):
 
 if __name__ == "__main__":
     root = "../MemeCraft/"
+    # input_path stores the image name and image url
     input_path = root + "dataset/meme_template_sorted.json"
+    # output_path stores the image name and image text description
     output_path =root + "dataset/meme_text_description.json"
     with open(input_path, "r") as f:
-        old_data = json.load(f)
+        raw_data = json.load(f)
     data = {}
-    for img in old_data:
-        data[img] =old_data[img][0]
+    for img in raw_data:
+        data[img] =raw_data[img][0]
 
     model_name = "liuhaotian/LLaVA-Lightning-MPT-7B-preview"
     query = "Given the image, generate a concise image caption."
 
-    eval_model(model_name, data, query, output_path)
+    run_model(model_name, data, query, output_path)
