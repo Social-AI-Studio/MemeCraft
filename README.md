@@ -5,14 +5,14 @@ The paper proposes a novel meme generation model that leverages large language m
 
 ![Screenshot](images/framework.png)
 
-# Human evaluation
+## Human evaluation
 
 We have evaluated our model generated memes by human based on five aspects
 - Do the generated memes resemble publicly available online memes? [Authencity]
-- R2: Are the generated memes humorous? [Hilarity]
-- R3: Do the generated memes communicate the intended message? (e.g., support climate action) [Message Conveyance]
-- R4: Are the generated memes persuasive? [Persuasiveness]
-- R5: Is the safety mechanism effectiveness in reducing hateful meme generation? [Hatefulness]
+- Are the generated memes humorous? [Hilarity]
+- Do the generated memes communicate the intended message? (e.g., support climate action) [Message Conveyance]
+- Are the generated memes persuasive? [Persuasiveness]
+- Is the safety mechanism effectiveness in reducing hateful meme generation? [Hatefulness]
 
 The authenticity scores are as follows: Our model achieved a 48% rate of generating memes that resemble those created by humans, significantly surpassing the baseline model, Dank Learning, and closely approximating real human-generated memes. For more details on the evaluation, please refer to our paper.
 
