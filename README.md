@@ -1,7 +1,7 @@
 # MemeCraft
 Official implementation for: MemeCraft: Contextual and Stance-Driven Multimodal Meme Generation
 
-The paper proposes a novel meme generation model that leverages a large language model(LLM) and a large vision model(LVM). The framework is as follows:
+The paper proposes a novel meme generation model that leverages large language models(LLMs) and a large vision models(LVMs). The framework is as follows:
 
 ![Screenshot](images/framework.png)
 
